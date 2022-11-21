@@ -22,7 +22,7 @@ const _endEvent = { type: 'end' };
 class OrbitControls extends EventDispatcher {
 
 	constructor( object, domElement ) {
-
+		console.log("log2");
 		super();
 
 		this.object = object;

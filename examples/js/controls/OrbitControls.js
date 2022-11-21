@@ -19,7 +19,7 @@
 	class OrbitControls extends THREE.EventDispatcher {
 
 		constructor( object, domElement ) {
-
+			console.log("log1");
 			super();
 			this.object = object;
 			this.domElement = domElement;
