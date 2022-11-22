@@ -67,6 +67,10 @@ class OrbitControls extends EventDispatcher {
 		this.enableRotate = true;
 		this.rotateSpeed = 1.0;
 
+		//Set to false to disable tilting with gyro
+		this.tiltEnabled = false;
+		this.tiltSpeed = 0.01;  //we might want a multiplier for ios
+
 		// Set to false to disable panning
 		this.enablePan = true;
 		this.panSpeed = 1.0;
@@ -1241,6 +1245,56 @@ class OrbitControls extends EventDispatcher {
 
 		}
 
+		/**
+	 * Tilt function
+	 * 
+	 * For mobile, uses orientation sensors to orbit target object. Only supports
+	 * orbit.  Pan and zoom may come later.  Ping me if of interest @ novak.us 
+	 * 
+	 * @param event 
+	 * 
+	 * @Performance: I have found that devicemotion event is a little faster 
+	 * likely because the delta is part of the device event object and doesn't 
+	 * have to be calculated here.  Though, I find that the deviceorientation 
+	 * event is more common.
+	 */
+	function tilt(event){	
+
+		//		var start, end, time;
+		
+				switch(event.type) {
+		
+					case "deviceorientation" :
+		//				start = new Date().getTime();
+						rotateEnd.set( event.gamma, event.beta );
+						rotateDelta.subVectors( rotateEnd, rotateStart );
+		
+						scope.rotateLeft( rotateDelta.x * scope.tiltSpeed);	
+						scope.rotateUp( rotateDelta.y * scope.tiltSpeed);
+		
+						rotateStart.copy( rotateEnd );
+		
+						scope.update();
+		//				end = new Date().getTime();
+		//				time =  end - start;
+		//				console.log("deviceorientation: " + time)
+					break;
+					case "devicemotion" :
+						console.log(event.rotationRate);
+		//				start = new Date().getTime()
+						scope.rotateLeft(event.rotationRate.beta * scope.tiltSpeed) ;
+						scope.rotateUp(event.rotationRate.alpha * scope.tiltSpeed) ;
+		
+						scope.update();
+		//				end = new Date().getTime();
+		//				time =  end - start;
+		//				console.log("devicemotion: " + time)
+					break;
+		
+				}
+		
+			} //tilt
+
 		//
 
 		scope.domElement.addEventListener( 'contextmenu', onContextMenu );
@@ -1248,6 +1302,15 @@ class OrbitControls extends EventDispatcher {
 		scope.domElement.addEventListener( 'pointerdown', onPointerDown );
 		scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
 		scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
+		if (window.DeviceOrientationEvent ) {  
+
+			window.addEventListener("deviceorientation", tilt, false);
+	
+		} else if ( window.DeviceMotionEvent ) {
+	
+			window.addEventListener('devicemotion', tilt, false);
+	
+		} 
 
 		// force an update at start
 
@@ -1284,4 +1347,110 @@ class MapControls extends OrbitControls {
 
 }
 
-export { OrbitControls, MapControls };
+class TiltControls extends OrbitControls{
+	constructor(object, domElement){
+	super(object, domElement);
+	this.object = object ;
+	this.target = new THREE.Vector3();
+
+	this.rotateStart = new THREE.Vector2();
+	this.rotateEnd = new THREE.Vector2();
+	this.rotateDelta = new THREE.Vector2();
+	this.rotateSpeed = 1.0 ;
+
+	var scope = this;
+
+	var Environment = {
+	    //mobile or desktop compatible event name, to be used with '.on' function
+
+	    isAndroid: function() {
+	        return navigator.userAgent.match(/Android/i);
+	    },
+	    isBlackBerry: function() {
+	        return navigator.userAgent.match(/BlackBerry/i);
+	    },
+	    isIOS: function() {
+	        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+	    },
+	    isOpera: function() {
+	        return navigator.userAgent.match(/Opera Mini/i);
+	    },
+	    isWindows: function() {
+	        return navigator.userAgent.match(/IEMobile/i);
+	    },
+	    isMobile: function() {
+	        return (Environment.isAndroid() || Environment.isBlackBerry() || Environment.isIOS() || Environment.isOpera() || Environment.isWindows());
+	    }
+	};
+
+	function init(){
+
+		if (window.DeviceOrientationEvent) {
+		    window.addEventListener("deviceorientation", function () {
+		        tilt(event.beta, event.gamma);
+		    }, true);
+		} else if (window.DeviceMotionEvent) {
+		    window.addEventListener('devicemotion', function () {
+		        tilt(event.acceleration.x * 2, event.acceleration.y * 2);
+		    }, true);
+		} else {
+		    window.addEventListener("MozOrientation", function () {
+		        tilt(orientation.x * 50, orientation.y * 50);
+		    }, true);
+		}
+
+	} //start
+
+	function quit(){
+		//TODO: remove listeners. 
+	} //quit
+
+	this.rotateLeft = function ( angle ) {
+
+		if ( angle === undefined ) {
+
+			angle = getAutoRotationAngle();
+
+		}
+
+		thetaDelta -= angle;
+
+	};
+
+	this.rotateUp = function ( angle ) {
+
+		if ( angle === undefined ) {
+
+			angle = getAutoRotationAngle();
+
+		}
+
+		phiDelta -= angle;
+
+	};
+
+	function onTilt(offsetX, offsetY){
+
+		rotateEnd.set( event.clientX, event.clientY );
+		rotateDelta.subVectors( rotateEnd, rotateStart );
+
+		// rotating across whole screen goes 360 degrees around
+		scope.rotateLeft( 2 * Math.PI * offsetX * scope.rotateSpeed );
+
+		// rotating up and down along whole screen attempts to go 360, but limited to 180
+		scope.rotateUp( 2 * Math.PI * offsetY * scope.rotateSpeed );
+
+		console.log("X: " + rotateDelta.x)
+		console.log("y: " + rotateDelta.y)
+
+		rotateStart.copy( rotateEnd );
+	} //onTilt
+
+	if(Environment.isMobile()){
+		init();
+	}
+
+	}
+}
+
+export { OrbitControls, MapControls, TiltControls };
