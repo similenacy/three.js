@@ -1269,8 +1269,8 @@ class OrbitControls extends EventDispatcher {
 						rotateEnd.set( event.gamma, event.beta );
 						rotateDelta.subVectors( rotateEnd, rotateStart );
 		
-						scope.rotateLeft( rotateDelta.x * scope.tiltSpeed);	
-						scope.rotateUp( rotateDelta.y * scope.tiltSpeed);
+						rotateLeft( rotateDelta.x * scope.tiltSpeed);	
+						rotateUp( rotateDelta.y * scope.tiltSpeed);
 		
 						rotateStart.copy( rotateEnd );
 		
@@ -1282,8 +1282,8 @@ class OrbitControls extends EventDispatcher {
 					case "devicemotion" :
 						console.log(event.rotationRate);
 		//				start = new Date().getTime()
-						scope.rotateLeft(event.rotationRate.beta * scope.tiltSpeed) ;
-						scope.rotateUp(event.rotationRate.alpha * scope.tiltSpeed) ;
+						rotateLeft(event.rotationRate.beta * scope.tiltSpeed) ;
+						rotateUp(event.rotationRate.alpha * scope.tiltSpeed) ;
 		
 						scope.update();
 		//				end = new Date().getTime();
@@ -1353,9 +1353,9 @@ class TiltControls extends OrbitControls{
 	this.object = object ;
 	this.target = new THREE.Vector3();
 
-	this.rotateStart = new THREE.Vector2();
-	this.rotateEnd = new THREE.Vector2();
-	this.rotateDelta = new THREE.Vector2();
+	this.rotateStart = new Vector2();
+	this.rotateEnd = new Vector2();
+	this.rotateDelta = new Vector2();
 	this.rotateSpeed = 1.0 ;
 
 	var scope = this;
