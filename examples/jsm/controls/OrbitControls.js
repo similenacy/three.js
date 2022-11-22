@@ -1266,6 +1266,7 @@ class OrbitControls extends EventDispatcher {
 		
 					case "deviceorientation" :
 		//				start = new Date().getTime();
+						console.log(event.gamma, event.beta);
 						rotateEnd.set( event.gamma, event.beta );
 						rotateDelta.subVectors( rotateEnd, rotateStart );
 		
