@@ -1303,7 +1303,7 @@ class OrbitControls extends EventDispatcher {
 		scope.domElement.addEventListener( 'pointerdown', onPointerDown );
 		scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
 		scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
-		if (windowDeviceOrientationEvent ) {  
+		if (window.DeviceOrientationEvent ) {  
 			console.log("add device orientation listener");
 			scope.domElement.addEventListener("deviceorientation", tilt, false);
 	
